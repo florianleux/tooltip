@@ -2,8 +2,9 @@
   <span class="relative" >
     <div
       v-show="isVisible"
-      class="tooltip absolute whitespace-nowrap"
       :class="tooltipClass"
+      class="tooltip absolute whitespace-nowrap"
+      :style="`max-height:${tooltipMaxHeight}px; max-width:${tooltipMaxWidth}px`"
     >
       {{ text }}
     </div>
@@ -11,8 +12,6 @@
       <slot name="activator"  :show-tooltip="showTooltip" :hide-tooltip="hideTooltip"/>
     </span>
   </span>
-
-
 </template>
 
 <script>
@@ -24,40 +23,38 @@ export default {
   data: () => {
     return {
       isVisible: false,
-      tooltipClass: 'top'
+      tooltipClass: 'top',
+      tooltipMaxHeight:0,
+      tooltipMaxWidth: 0,
     }
-  },
-  mounted() {
-    this.calculatePosition();
-
   },
   methods: {
     calculatePosition() {
-      let targetPosition = this.$refs["tooltip-target"].getBoundingClientRect(),
+      const targetPosition = this.$refs["tooltip-target"].getBoundingClientRect(),
           windowHeight = window.innerHeight,
           windowWidth = window.innerWidth;
 
-      if(targetPosition.top > 2*windowHeight/3){
-        this.tooltipClass = 'top'
-      }else if(targetPosition.left < windowWidth/3) {
-      this.tooltipClass = 'right'
-      }else if(targetPosition.right > 2*windowWidth/3) {
-      this.tooltipClass = 'left'
-      }else if(targetPosition.bottom < windowWidth/3) {
-      this.tooltipClass = 'bottom'
-      }
+      const remainingSpace = {
+            "top": targetPosition.top,
+            "right":     windowWidth - targetPosition.right,
+            "bottom": windowHeight - targetPosition.bottom,
+            "left": targetPosition.left,
+          }
 
-    },
+      const maxSpaceDirection = Object.keys(remainingSpace).reduce((a, b) => remainingSpace[a] > remainingSpace[b] ? a : b);
+
+      this.tooltipClass = maxSpaceDirection;
+      this.tooltipMaxWidth = ['left','right'].includes(maxSpaceDirection) ? remainingSpace[maxSpaceDirection]/2 : windowWidth/2;
+      this.tooltipMaxHeight = ['top','bottom'].includes(maxSpaceDirection) ? remainingSpace[maxSpaceDirection]/2 : windowHeight/2;
+      },
     hideTooltip() {
       this.isVisible = false;
     },
     showTooltip() {
+      this.calculatePosition();
       this.isVisible = true;
-
     }
-
   }
-
 }
 </script>
 
@@ -67,7 +64,7 @@ $tooltip-margin : -15px;
 .tooltip {
   &.top{
     top:$tooltip-margin;
-    transform: translate(0%,100%);
+    transform: translate(0%,-100%);
   }
 
   &.right{
@@ -77,12 +74,12 @@ $tooltip-margin : -15px;
 
   &.left{
     bottom: $tooltip-margin;
-    transform: translate(0%,-100%);
+    transform: translate(-100%,0);
   }
 
   &.bottom{
     right: $tooltip-margin;
-    transform: translate(-100%,0);
+    transform: translate(0,100%);
   }
 }
 </style>

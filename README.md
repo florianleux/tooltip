@@ -1,6 +1,6 @@
-# Simple tooltip component
+# Tooltip
 
-This is a simple tooltip component with automatic positionning depending on available space around the element.
+This is a minimalist tooltip component made in vueJS with autonomous positionning depending on available space around the element.
 
 ## Running the demo
 

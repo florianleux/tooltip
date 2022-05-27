@@ -1,15 +1,18 @@
 <template>
-  <span class="relative" >
-    <div
-      v-show="isVisible"
-      :class="tooltipClass"
-      class="tooltip absolute whitespace-nowrap"
-      :style="`max-height:${tooltipMaxHeight}px; max-width:${tooltipMaxWidth}px`"
-    >
+  <span class="relative">
+ <transition name="fade" mode="out-in" appear>
+       <div
+           v-show="isVisible"
+           :class="tooltipClass"
+           class="tooltip absolute whitespace-nowrap bg-slate-700 text-white rounded px-2 py-1 "
+           :style="`max-height:${tooltipMaxHeight}px; max-width:${tooltipMaxWidth}px`"
+       >
       {{ text }}
     </div>
+  </transition>
+
     <span ref="tooltip-target">
-      <slot name="activator"  :show-tooltip="showTooltip" :hide-tooltip="hideTooltip"/>
+      <slot name="activator" :tooltip-handlers="tooltipHandlers" />
     </span>
   </span>
 </template>
@@ -21,12 +24,24 @@ export default {
     text: {type: String, required: true}
   },
   data: () => {
+    let vm = this;
     return {
       isVisible: false,
       tooltipClass: 'top',
-      tooltipMaxHeight:0,
+      tooltipMaxHeight: 0,
       tooltipMaxWidth: 0,
+      tooltipHandlers:{}
     }
+  },
+  mounted(){
+    //Initiating event handlers
+    this.tooltipHandlers = {
+      mouseover: this.showTooltip,
+      focusin : this.showTooltip,
+      mouseleave:  this.hideTooltip,
+      focusout:  this.hideTooltip ,
+    }
+
   },
   methods: {
     calculatePosition() {
@@ -35,18 +50,18 @@ export default {
           windowWidth = window.innerWidth;
 
       const remainingSpace = {
-            "top": targetPosition.top,
-            "right":     windowWidth - targetPosition.right,
-            "bottom": windowHeight - targetPosition.bottom,
-            "left": targetPosition.left,
-          }
+        "top": targetPosition.top,
+        "right": windowWidth - targetPosition.right,
+        "bottom": windowHeight - targetPosition.bottom,
+        "left": targetPosition.left,
+      }
 
       const maxSpaceDirection = Object.keys(remainingSpace).reduce((a, b) => remainingSpace[a] > remainingSpace[b] ? a : b);
 
       this.tooltipClass = maxSpaceDirection;
-      this.tooltipMaxWidth = ['left','right'].includes(maxSpaceDirection) ? remainingSpace[maxSpaceDirection]/2 : windowWidth/2;
-      this.tooltipMaxHeight = ['top','bottom'].includes(maxSpaceDirection) ? remainingSpace[maxSpaceDirection]/2 : windowHeight/2;
-      },
+      this.tooltipMaxWidth = ['left', 'right'].includes(maxSpaceDirection) ? remainingSpace[maxSpaceDirection] / 2 : windowWidth / 2;
+      this.tooltipMaxHeight = ['top', 'bottom'].includes(maxSpaceDirection) ? remainingSpace[maxSpaceDirection] / 2 : windowHeight / 2;
+    },
     hideTooltip() {
       this.isVisible = false;
     },
@@ -59,27 +74,41 @@ export default {
 </script>
 
 <style scoped lang="scss">
-$tooltip-margin : -15px;
+$tooltip-margin: -15px;
 
 .tooltip {
-  &.top{
-    top:$tooltip-margin;
-    transform: translate(0%,-100%);
+  font-size: 0.8em;
+  overflow: hidden;
+
+  &.top {
+    top: $tooltip-margin;
+    transform: translate(0%, -100%);
   }
 
-  &.right{
+  &.right {
     right: $tooltip-margin;
-    transform: translate(100%,0);
+    transform: translate(100%, 0);
   }
 
-  &.left{
+  &.left {
     bottom: $tooltip-margin;
-    transform: translate(-100%,0);
+    transform: translate(-100%, 0);
   }
 
-  &.bottom{
+  &.bottom {
     right: $tooltip-margin;
-    transform: translate(0,100%);
+    transform: translate(0, 100%);
   }
 }
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.5s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 </style>

@@ -3,11 +3,11 @@
  <transition name="fade" mode="out-in" appear>
        <div
            v-show="isVisible"
-           :class="tooltipClass"
+           :class="positionClass"
            class="tooltip absolute whitespace-nowrap bg-slate-700 text-white rounded px-2 py-1 "
            :style="`max-height:${tooltipMaxHeight}px; max-width:${tooltipMaxWidth}px`"
        >
-      {{ text }}
+     <slot name="content"/>
     </div>
   </transition>
 
@@ -20,14 +20,11 @@
 <script>
 export default {
   name: "Tooltip",
-  props: {
-    text: {type: String, required: true}
-  },
   data: () => {
     let vm = this;
     return {
       isVisible: false,
-      tooltipClass: 'top',
+      positionClass: 'top',
       tooltipMaxHeight: 0,
       tooltipMaxWidth: 0,
       tooltipHandlers:{}
@@ -58,7 +55,7 @@ export default {
 
       const maxSpaceDirection = Object.keys(remainingSpace).reduce((a, b) => remainingSpace[a] > remainingSpace[b] ? a : b);
 
-      this.tooltipClass = maxSpaceDirection;
+      this.positionClass = maxSpaceDirection;
       this.tooltipMaxWidth = ['left', 'right'].includes(maxSpaceDirection) ? remainingSpace[maxSpaceDirection] / 2 : windowWidth / 2;
       this.tooltipMaxHeight = ['top', 'bottom'].includes(maxSpaceDirection) ? remainingSpace[maxSpaceDirection] / 2 : windowHeight / 2;
     },
@@ -79,25 +76,30 @@ $tooltip-margin: -15px;
 .tooltip {
   font-size: 0.8em;
   overflow: hidden;
+  z-index: 1000;
 
   &.top {
+    right:50%;
     top: $tooltip-margin;
-    transform: translate(0%, -100%);
+    transform: translate(-50%, -100%);
   }
 
   &.right {
+    top:50%;
     right: $tooltip-margin;
-    transform: translate(100%, 0);
+    transform: translate(100%, -50%);
   }
 
   &.left {
-    bottom: $tooltip-margin;
-    transform: translate(-100%, 0);
+    top:50%;
+    left: $tooltip-margin;
+    transform: translate(-100%, -50%);
   }
 
   &.bottom {
-    right: $tooltip-margin;
-    transform: translate(0, 100%);
+    right:50%;
+    bottom: $tooltip-margin;
+    transform: translate(50%, 100%);
   }
 }
 
